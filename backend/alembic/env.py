@@ -1,25 +1,33 @@
 import asyncio
+import os
 from logging.config import fileConfig
 
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config # <--- استيراد النسخة Async
-
 from alembic import context
+from dotenv import load_dotenv
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
+
 from app.models import Base
 
-# هذا هو كائن إعدادات Alembic
+load_dotenv()
+
 config = context.config
 
-# إعداد الـ Logging
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# معالجة الرابط لـ Alembic ليتوافق مع Async والتشفير
+if DATABASE_URL:
+    # 1. مضاعفة علامة % لكي لا يعترض Alembic Interpolation
+    alembic_db_url = DATABASE_URL.replace("%", "%%")
+    config.set_main_option("sqlalchemy.url", alembic_db_url)
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# تحديد MetaData الخاصة بالنواة/الموديلز
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """تشغيل الهجرة في وضع الأوفلاين."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -33,7 +41,6 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection):
-    """دالة مساعدة لتطبيق الهجرة داخل الاتصال التزامني الممرر من Async."""
     context.configure(
         connection=connection, 
         target_metadata=target_metadata
@@ -44,17 +51,12 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
-    """إنشاء المحرك اللا متزامئ وتشغيل الهجرة."""
-    # تعيين رابط الاتصال الخاص بك
-    config.set_main_option(
-        "sqlalchemy.url",
-        "postgresql+asyncpg://postgresUser:mySecretPassword@localhost:5432/mydb"
-    )
-
+    # استخدام الإعداد من config مباشرة
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"prepared_statement_cache_size": 0}
     )
 
     async with connectable.connect() as connection:
@@ -64,7 +66,6 @@ async def run_async_migrations() -> None:
 
 
 def run_migrations_online() -> None:
-    """تشغيل الهجرة في وضع أونلاين عبر asyncio."""
     asyncio.run(run_async_migrations())
 
 
