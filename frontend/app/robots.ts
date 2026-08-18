@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
     //change the url with the website domain name
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://almah.shop'
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://almah-store.vercel.app'
 
   return {
     rules: [
@@ -11,8 +11,7 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow:[
                 '/admin',
-                '/admin/*',
-                '/api/*',
+                '/api/',
             ],
         },
     ],

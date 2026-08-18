@@ -7,7 +7,7 @@ import './globals.css'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { CheckoutDialog } from '@/components/checkout-dialog'
-import { WebVitals } from './web-vitals' // 👈 1. تم استيراد المكون هنا
+import { WebVitals } from './web-vitals'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,15 +22,29 @@ const cormorant = Cormorant_Garamond({
   display: 'swap',
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://almah-store.vercel.app'
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://almah.shop'),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'ألما — ملابس نسائية عصرية وأنثوية',
-    template: '%s | ألما',
+    default: 'ALMAH | ألما — ألبسة تقليدية جزائرية فاخرة وأزياء عصرية',
+    template: '%s | ألما — ALMAH',
   },
   description:
-    'ألما هي علامة تجارية عصرية للملابس النسائية. اكتشفي المجموعة الصيفية الجديدة من الفساتين الأنيقة والبلوزات الحريرية مع ميزة الطلب السريع.',
-  keywords: ['ملابس نسائية', 'فساتين صيفية', 'متجر ألبسة', 'بلوزات حرير', 'أزياء نسائية'],
+    'متجر ALMAH (ألما) - أصالة الألبسة التقليدية الجزائرية الفاخرة المصنوعة يدوياً والعصرية. تشكيلات مميزة من الكاراكو، القفطان، القندورة، واللباس القبائلي مع طلب سريع وتوصيل لجميع الولايات والدفع عند الاستلام.',
+  keywords: [
+    'ألما',
+    'ALMAH',
+    'ألبسة تقليدية جزائرية',
+    'كاراكو جزائري فاخر',
+    'قندورة',
+    'قفطان',
+    'لباس قبائلي',
+    'كاميزورا',
+    'ملابس تقليدية مصنوعة يدويا',
+    'أزياء نسائية الجزائر',
+    'متجر ألبسة تقليدية'
+  ],
   alternates: {
     canonical: './',
   },
@@ -46,10 +60,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'ألما — ملابس نسائية عصرية',
-    description: 'اكتشفي تشكيلة الفساتين والملابس النسائية الأنيقة من متجر ألما.',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://almah.shop',
-    siteName: 'ألما',
+    title: 'ALMAH | ألما — ألبسة تقليدية جزائرية فاخرة',
+    description: 'اكتشفي تشكيلة الكاراكو، القفطان، والقندورة الفاخرة المصنوعة يدوياً من متجر ألما. طلب سريع وتوصيل لجميع الولايات مع الدفع عند الاستلام.',
+    url: siteUrl,
+    siteName: 'ألما — ALMAH',
     locale: 'ar_DZ',
     type: 'website',
   },
@@ -65,6 +79,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // كود البيانات المنظمة Structured Data لعناكب محركات البحث
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'OnlineStore',
+    'name': 'ألما — ALMAH',
+    'url': siteUrl,
+    'description': 'متجر متخصّص في الألبسة التقليدية الجزائرية الفاخرة المصنوعة يدوياً والعصرية، يوفر ميزة الطلب السريع والتوصيل لكل الولايات والدفع عند الاستلام.',
+    'currenciesAccepted': 'DZD',
+    'paymentAccepted': 'Cash on Delivery',
+    'priceRange': '$$$',
+    'areaServed': {
+      '@type': 'Country',
+      'name': 'Algeria',
+    },
+  }
+
   return (
     <html 
       lang="ar" 
@@ -72,8 +102,14 @@ export default function RootLayout({
       className={`dark bg-[#0a0a0a] ${inter.variable} ${cormorant.variable}`}
       style={{ colorScheme: 'dark' }}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="font-sans antialiased text-foreground bg-[#0a0a0a]">
-        <WebVitals /> {/* 👈 2. تم إضافة المكون هنا لتتبع الأداء */}
+        <WebVitals />
         <CartProvider>
           <div className="flex min-h-screen flex-col bg-background">
             <SiteHeader />
