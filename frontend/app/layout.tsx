@@ -67,6 +67,11 @@ export const metadata: Metadata = {
     locale: 'ar_DZ',
     type: 'website',
   },
+  icons:{
+    icon: 'shopping-bag.svg',
+    shortcut: 'shopping-bag.svg',
+    apple: 'shopping-bag.svg',
+  },
 }
 
 export const viewport: Viewport = {
