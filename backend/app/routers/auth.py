@@ -73,7 +73,7 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(User).where(User.email == form_data.username | (User.phone_number == form_data.username))
+        select(User).where((User.email == form_data.username) | (User.phone_number == form_data.username))
     )
     user = result.scalar_one_or_none()
 
