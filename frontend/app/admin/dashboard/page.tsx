@@ -27,6 +27,17 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   cancelled: { label: 'ملغى', className: 'bg-rose-500/15 text-rose-500' },
 }
 
+function slugify(text: string): string {
+  if (!text) return ''
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u0600-\u06FF-]+/g, '')
+    .replace(/\-\-+/g, '-')
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter()
   const [token, setToken] = useState<string | null>(null)
@@ -43,6 +54,7 @@ export default function AdminDashboardPage() {
   // New Product Form State
   const [showAddProduct, setShowAddProduct] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [imageAngle, setImageAngle] = useState<string>('front')
   const [newProduct, setNewProduct] = useState({
     title: '',
     description: '',
@@ -55,6 +67,7 @@ export default function AdminDashboardPage() {
   // Edit Product State
   const [editingProduct, setEditingProduct] = useState<any | null>(null)
   const [editFiles, setEditFiles] = useState<File[]>([])
+  const [editImageAngle, setEditImageAngle] = useState<string>('front')
 
   useEffect(() => {
     const storedToken = localStorage.getItem('admin_token')
@@ -108,12 +121,16 @@ export default function AdminDashboardPage() {
         token
       )
 
-      // 2. إذا تم تحديد صور مرفوعة، يتم رفعها وتخصيصها للمنتج الجديد
+      // 2. رفع وتحويل الصور إلى WebP ومشاركتها مع المنتج
       if (selectedFiles.length > 0 && created?.id) {
-        await uploadProductImages(created.id, selectedFiles, token)
+        // نمرر اسم المنتج والزاوية المعينة لتحسين الـ SEO
+        await uploadProductImages(created.id, selectedFiles, token, {
+          product_slug: slugify(newProduct.title) || `product-${created.id}`,
+          angle: imageAngle
+        })
       }
 
-      toast.success('تمت إضافة المنتج بنجاح ✨')
+      toast.success('تمت إضافة المنتج وتحويل الصور إلى WebP بنجاح ✨')
       setShowAddProduct(false)
       setSelectedFiles([])
       setNewProduct({ title: '', description: '', price: '', cost_price: '', stock: 10, image_url: '' })
@@ -137,9 +154,12 @@ export default function AdminDashboardPage() {
 
       await updateAdminProduct(editingProduct.id, payload, token)
 
-      // رفع الصور الجديدة الإضافية إذا وُجدت
+      // رفع الصور الجديدة وتحويلها إلى WebP
       if (editFiles.length > 0) {
-        await uploadProductImages(editingProduct.id, editFiles, token)
+        await uploadProductImages(editingProduct.id, editFiles, token, {
+          product_slug: slugify(editingProduct.title) || `product-${editingProduct.id}`,
+          angle: editImageAngle
+        })
       }
 
       toast.success('تم تحديث بيانات المنتج بنجاح 👍')
@@ -357,7 +377,7 @@ export default function AdminDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label>عنوان المنتج</Label>
-                    <Input required value={newProduct.title} onChange={e => setNewProduct({...newProduct, title: e.target.value})} placeholder="فستان صيفي حريري" />
+                    <Input required value={newProduct.title} onChange={e => setNewProduct({...newProduct, title: e.target.value})} placeholder="قفطان أنيق مطرز" />
                   </div>
                   <div>
                     <Label>سعر البيع (د.ج)</Label>
@@ -372,15 +392,30 @@ export default function AdminDashboardPage() {
                     <Input type="number" required value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} />
                   </div>
                   <div>
-                    <Label>رابط الصورة الرئيسية (رابط خارجي)</Label>
-                    <Input value={newProduct.image_url} onChange={e => setNewProduct({...newProduct, image_url: e.target.value})} placeholder="/products/image.jpg" />
+                    <Label>رابط الصورة الرئيسية المباشر (اختياري)</Label>
+                    <Input value={newProduct.image_url} onChange={e => setNewProduct({...newProduct, image_url: e.target.value})} placeholder="https://..." />
                   </div>
 
-                  {/* رفع ملفات صور متعددة */}
+                  {/* تحديد زاوية الصورة للـ SEO */}
                   <div>
+                    <Label>زاوية الصور (لتحسين الـ SEO)</Label>
+                    <select
+                      value={imageAngle}
+                      onChange={(e) => setImageAngle(e.target.value)}
+                      className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="front">الواجهة الأمامية (front)</option>
+                      <option value="back">الواجهة الخلفية (back)</option>
+                      <option value="side">الجانب (side)</option>
+                      <option value="detail">تفاصيل التطريز (detail)</option>
+                    </select>
+                  </div>
+
+                  {/* رفع ملفات صور متعددة وتوليد WebP */}
+                  <div className="md:col-span-2">
                     <Label className="flex items-center gap-1.5">
                       <Upload className="size-3.5" />
-                      رفع صور متعددة للملف
+                      رفع صور وسيعاد تحويلها لـ WebP تلقائياً
                     </Label>
                     <Input
                       type="file"
@@ -435,14 +470,28 @@ export default function AdminDashboardPage() {
                     <Input type="number" required value={editingProduct.stock ?? 0} onChange={e => setEditingProduct({...editingProduct, stock: parseInt(e.target.value)})} />
                   </div>
                   <div>
-                    <Label>رابط الصورة المفردة (URL)</Label>
+                    <Label>رابط الصورة الرئيسية (URL)</Label>
                     <Input value={editingProduct.image_url || ''} onChange={e => setEditingProduct({...editingProduct, image_url: e.target.value})} />
                   </div>
 
                   <div>
+                    <Label>زاوية الصور الجديدة</Label>
+                    <select
+                      value={editImageAngle}
+                      onChange={(e) => setEditImageAngle(e.target.value)}
+                      className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="front">الواجهة الأمامية (front)</option>
+                      <option value="back">الواجهة الخلفية (back)</option>
+                      <option value="side">الجانب (side)</option>
+                      <option value="detail">تفاصيل التطريز (detail)</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-3">
                     <Label className="flex items-center gap-1.5">
                       <Upload className="size-3.5" />
-                      إضافة صور جديدة
+                      إضافة صور جديدة (تحويل تلقائي لـ WebP)
                     </Label>
                     <Input
                       type="file"
@@ -461,11 +510,11 @@ export default function AdminDashboardPage() {
                 {/* معرض صور المنتج الحالية مع إمكانية الحذف */}
                 {editingProduct.images && editingProduct.images.length > 0 && (
                   <div className="space-y-2 pt-2">
-                    <Label className="text-xs">الصور المرفوعة حالياً للمنتج:</Label>
+                    <Label className="text-xs">الصور المرفوعة حالياً للمنتج (صيغ WebP):</Label>
                     <div className="flex gap-3 overflow-x-auto pb-2">
                       {editingProduct.images.map((img: any) => (
                         <div key={img.id} className="relative aspect-square w-16 shrink-0 overflow-hidden rounded-lg border border-border group">
-                          <img src={img.image_url.startsWith('http') || img.image_url.startsWith('/') ? img.image_url : `http://localhost:8000/${img.image_url}`} alt="" className="object-cover w-full h-full" />
+                          <img src={img.image_url} alt="" className="object-cover w-full h-full" />
                           <button
                             type="button"
                             onClick={() => handleDeleteImage(img.id)}

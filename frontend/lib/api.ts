@@ -229,22 +229,32 @@ export async function deleteAdminProduct(productId: number, token: string): Prom
 /* ------------------------------------------------------------------ */
 
 /**
- * رفع صور متعددة لمنتج معين
+ * رفع صور متعددة لمنتج معين مع تحسينات الـ SEO
  */
 export async function uploadProductImages(
   productId: number,
   files: File[],
-  token: string
+  token: string,
+  options?: { product_slug?: string; angle?: string }
 ): Promise<ProductImage[]> {
   const formData = new FormData()
   files.forEach((file) => {
     formData.append('files', file)
   })
 
+  // إرسال البيانات الإضافية في حال وجودها
+  if (options?.product_slug) {
+    formData.append('product_slug', options.product_slug)
+  }
+  if (options?.angle) {
+    formData.append('angle', options.angle)
+  }
+
   const res = await fetch(`${API_BASE_URL}/admin/products/${productId}/images`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
+      // تنبيه: لا تضع Content-Type يدويًا هنا لكي يقوم المتصفح بضبط boundary الـ FormData تلقائيًا
     },
     body: formData,
   })
