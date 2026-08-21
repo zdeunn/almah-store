@@ -82,12 +82,14 @@ async def login(
     user = result.scalar_one_or_none()
 
     if user is None:
+        print("User not found")
         raise HTTPException(
             status_code=401,
             detail="USER_NOT_FOUND",
         )
 
     if user.is_guest:
+        print("User is a guest")
         raise HTTPException(
             status_code=401,
             detail="USER_IS_GUEST",
@@ -97,6 +99,7 @@ async def login(
         form_data.password,
         user.hashed_password
     ):
+        print("Password incorrect")
         raise HTTPException(
             status_code=401,
             detail="PASSWORD_INCORRECT",
