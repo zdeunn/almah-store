@@ -14,10 +14,10 @@ export function Hero() {
             صيف 2026
           </p>
           <h1 className="mt-4 text-balance font-serif text-4xl font-medium leading-[1.15] text-foreground sm:text-5xl md:text-6xl text-center md:text-right">
-            مجموعة الصيف الجديدة
+            تَميَزِي عن البَقِية
           </h1>
           <p className="mt-5 max-w-md mx-auto md:mx-0 text-pretty leading-relaxed text-muted-foreground text-center md:text-right">
-            قطع مريحة ومصممة بعناية للمرأة العصرية. اكتشفي الفساتين الانسيابية والبلوزات الأنيقة التي صممت خصيصاً لتتحرك معكِ بكل خفة.
+           قطع تقليدية تظهر ثِقتكِ وتصف مكانتكِ بين الحضور 
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3 justify-center md:justify-start">
@@ -47,7 +47,7 @@ export function Hero() {
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary">
             <Image
               src="/products/the-algerian-culture.webp"
-              alt="مجموعة الصيف الجديدة"
+              alt="تَميَزِي عن البَقِية"
               fill
               priority
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
