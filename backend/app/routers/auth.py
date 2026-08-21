@@ -173,5 +173,5 @@ async def upgrade_guest(
     await db.commit()
     await db.refresh(current_user)
 
-    return current_userme
+    return current_user
     

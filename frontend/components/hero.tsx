@@ -46,7 +46,7 @@ export function Hero() {
         <div className="order-1 md:order-2">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary">
             <Image
-              src="/products/frank-flores-t3836YmTfw8-unsplash.jpg"
+              src="/products/the-algerian-culture.webp"
               alt="مجموعة الصيف الجديدة"
               fill
               priority
